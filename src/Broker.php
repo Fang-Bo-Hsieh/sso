@@ -84,7 +84,7 @@ class Broker
      *
      * @return string
      */
-    protected function getSessionId()
+    public function getSessionId()
     {
         if (!isset($this->token)) return null;
 
@@ -133,11 +133,11 @@ class Broker
         $this->generateToken();
 
         $data = [
-            'command' => 'attach',
-            'broker' => $this->broker,
-            'token' => $this->token,
-            'checksum' => hash('sha256', 'attach' . $this->token . $this->secret)
-        ] + $_GET;
+                'command' => 'attach',
+                'broker' => $this->broker,
+                'token' => $this->token,
+                'checksum' => hash('sha256', 'attach' . $this->token . $this->secret)
+            ] + $_GET;
 
         return $this->url . "?" . http_build_query($data + $params);
     }

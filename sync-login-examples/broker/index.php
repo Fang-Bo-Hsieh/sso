@@ -9,22 +9,11 @@ if (isset($_GET['sso_error'])) {
     exit;
 }
 
+$config = include('config.php');
 $broker = new Jasny\SSO\Broker(getenv('SSO_SERVER'), getenv('SSO_BROKER_ID'), getenv('SSO_BROKER_SECRET'));
+// 將client的資訊透過broker傳給sso server
 $broker->attach(true);
 
-//try {
-//    $user = $broker->getUserInfo();
-//} catch (NotAttachedException $e) {
-//    header('Location: ' . $_SERVER['REQUEST_URI']);
-//    exit;
-//} catch (SsoException $e) {
-//    header("Location: error.php?sso_error=" . $e->getMessage(), true, 307);
-//}
-//
-//if (!$user) {
-//    header("Location: login.php", true, 307);
-//    exit;
-//}
 ?>
 <!doctype html>
 <html>

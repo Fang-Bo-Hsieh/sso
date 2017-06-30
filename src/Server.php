@@ -91,29 +91,29 @@ abstract class Server
         $this->brokerId = $this->validateBrokerSessionId($sid);
     }
 
-            /**
-         * Get session ID from header Authorization or from $_GET/$_POST
-         */
-        protected function getBrokerSessionID()
-        {
-            $headers = getallheaders();
+    /**
+     * Get session ID from header Authorization or from $_GET/$_POST
+     */
+    protected function getBrokerSessionID()
+    {
+        $headers = getallheaders();
 
-            if (isset($headers['Authorization']) &&  strpos($headers['Authorization'], 'Bearer') === 0) {
-                $headers['Authorization'] = substr($headers['Authorization'], 7);
-                return $headers['Authorization'];
-            }
-            if (isset($_GET['access_token'])) {
-                return $_GET['access_token'];
-            }
-            if (isset($_POST['access_token'])) {
-                return $_POST['access_token'];
-            }
-            if (isset($_GET['sso_session'])) {
-                return $_GET['sso_session'];
-            }
-
-            return false;
+        if (isset($headers['Authorization']) &&  strpos($headers['Authorization'], 'Bearer') === 0) {
+            $headers['Authorization'] = substr($headers['Authorization'], 7);
+            return $headers['Authorization'];
         }
+        if (isset($_GET['access_token'])) {
+            return $_GET['access_token'];
+        }
+        if (isset($_POST['access_token'])) {
+            return $_POST['access_token'];
+        }
+        if (isset($_GET['sso_session'])) {
+            return $_GET['sso_session'];
+        }
+
+        return false;
+    }
 
     /**
      * Validate the broker session id
@@ -281,6 +281,32 @@ abstract class Server
     }
 
     /**
+     * Authenticate
+     */
+    public function localLogin()
+    {
+        $this->startBrokerSession();
+
+        if (empty($_POST['username'])) $this->fail("No username specified", 400);
+        if (empty($_POST['password'])) $this->fail("No password specified", 400);
+
+        $validation = $this->authenticate($_POST['username'], $_POST['password']);
+
+        if ($validation->failed()) {
+            return $this->fail($validation->getError(), 400);
+        }
+
+        $this->setSessionData('sso_user', $_POST['username']);
+
+        if ($_POST['username']) {
+            $user = $this->getUserInfo($_POST['username']);
+            if (!$user) return $this->fail("User not found", 500); // Shouldn't happen
+        }
+
+        return true;
+    }
+
+    /**
      * Log out
      */
     public function logout()
@@ -333,7 +359,7 @@ abstract class Server
      *
      * @param type $key
      */
-    protected function getSessionData($key)
+    public function getSessionData($key)
     {
         if ($key === 'id') return session_id();
 

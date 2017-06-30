@@ -8,14 +8,14 @@ $ssoServer = new MySSOServer();
 $username = $ssoServer->getSessionData('sso_user');
 
 try {
-    if (!empty($_GET['logout'])) {
-        $ssoServer->logout();
-    } elseif ($ssoServer->getUserInfo($username) ||
+    if ($ssoServer->getUserInfo($username) ||
         ($_SERVER['REQUEST_METHOD'] == 'POST' && $ssoServer->localLogin())) {
-        header("Location: http://localhost:9002/login.php");
+        // 登入成功，回導到傳來的redirect_url
+        header("Location: ".$redirectUrl);
         exit();
     }
 
+    // 登入失敗
     if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $errmsg = "Login failed";
         header('Location: ' . $_SERVER['HTTP_REFERER'].'?'.$_SERVER['QUERY_STRING'].'&errmsg='.$errmsg);
