@@ -24,5 +24,6 @@ try {
     exit;
 } catch (Jasny\SSO\Exception $e) {
     $errmsg = $e->getMessage();
+    echo $errmsg;
 }
 

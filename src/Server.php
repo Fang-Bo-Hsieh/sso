@@ -96,7 +96,23 @@ abstract class Server
      */
     protected function getBrokerSessionID()
     {
+        if (!function_exists('getallheaders')) {
+            function getallheaders() {
+                $headers = [];
+                foreach ($_SERVER as $name => $value) {
+                    if (substr($name, 0, 5) == 'HTTP_') {
+                        $headers[str_replace(' ', '-', ucwords(strtolower(str_replace('_', ' ', substr($name, 5)))))] = $value;
+                    }
+                }
+                return $headers;
+            }
+        }
         $headers = getallheaders();
+
+        //Something to write to txt log
+        $log  = "header = " . json_encode($headers);
+        //Save string to log, use FILE_APPEND to append.
+        file_put_contents('./log_'.date("j.n.Y").'.txt', $log, FILE_APPEND);
 
         if (isset($headers['Authorization']) &&  strpos($headers['Authorization'], 'Bearer') === 0) {
             $headers['Authorization'] = substr($headers['Authorization'], 7);
@@ -125,12 +141,17 @@ abstract class Server
     {
         $matches = null;
 
-        if (!preg_match('/^SSO-(\w*+)-(\w*+)-([a-z0-9]*+)$/', $this->getBrokerSessionID(), $matches)) {
+        if (!preg_match('/^SSO-(\w*+)-(\w*+)-([a-z0-9]*+)$/', $sid, $matches)) {
             return $this->fail("Invalid session id");
         }
 
         $brokerId = $matches[1];
         $token = $matches[2];
+
+        //Something to write to txt log
+        $log  = "brokerId = " . $brokerId;
+        //Save string to log, use FILE_APPEND to append.
+        file_put_contents('./log_'.date("j.n.Y").'.txt', $log, FILE_APPEND);
 
         if ($this->generateSessionId($brokerId, $token) != $sid) {
             return $this->fail("Checksum failed: Client IP address may have changed", 403);
