@@ -39,6 +39,11 @@ if (!$user) {
 
             <pre><?= json_encode($user, JSON_PRETTY_PRINT); ?></pre>
 
+<!--            <form id="logout-form" class="form-horizontal" action="--><?//= getenv('SSO_SERVER').'/logout' ?><!--" method="post">-->
+<!--                <input type="hidden" name="redirect_url" value="localhost:9001/index.php">-->
+<!--                <a href="javascript:void(0)" class="btn btn-default"-->
+<!--                   onclick="document.getElementById('logout-form').submit(); return false;">Logout</a>-->
+<!--            </form>-->
             <a id="logout" class="btn btn-default" href="login.php?logout=1">Logout</a>
         </div>
     </body>

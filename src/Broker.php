@@ -103,7 +103,7 @@ class Broker
         setcookie($this->getCookieName(), $this->token, time() + $this->cookie_lifetime, '/');
     }
 
-    /**
+    /**$this->token
      * Clears session token
      */
     public function clearToken()
@@ -195,6 +195,7 @@ class Broker
         $ch = curl_init($url);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $method);
+        curl_setopt($ch, CURLOPT_VERBOSE, true);
         curl_setopt($ch, CURLOPT_HTTPHEADER, ['Accept: application/json', 'Authorization: Bearer '. $this->getSessionID()]);
 
         if ($method === 'POST' && !empty($data)) {
@@ -203,6 +204,13 @@ class Broker
         }
 
         $response = curl_exec($ch);
+//        exit(json_encode($response));
+
+        //Something to write to txt log
+        $log  = "response = " . json_encode($response);
+        //Save string to log, use FILE_APPEND to append.
+        file_put_contents('./broker-log_'.date("j.n.Y").'.txt', $log, FILE_APPEND);
+
         if (curl_errno($ch) != 0) {
             $message = 'Server request failed: ' . curl_error($ch);
             throw new Exception($message);
@@ -246,6 +254,11 @@ class Broker
         $result = $this->request('POST', 'login', compact('username', 'password'));
         $this->userinfo = $result;
 
+        //Something to write to txt log
+        $log  = "login result = " . json_encode($result);
+        //Save string to log, use FILE_APPEND to append.
+        file_put_contents('./broker-log_'.date("j.n.Y").'.txt', $log, FILE_APPEND);
+
         return $this->userinfo;
     }
 
@@ -254,7 +267,7 @@ class Broker
      */
     public function logout()
     {
-        $this->request('POST', 'logout', 'logout');
+        $this->request('GET', 'logout');
     }
 
     /**
@@ -264,8 +277,20 @@ class Broker
      */
     public function getUserInfo()
     {
+        // 若cookie有值，直接從cookie拿
+        if (isset($_COOKIE['flnet_user_info']) && $_COOKIE['flnet_user_info']) {
+            $this->userinfo = json_decode($_COOKIE['flnet_user_info']);
+            //Something to write to txt log
+            $log  = "cookie result = " . json_encode($this->userinfo);
+            //Save string to log, use FILE_APPEND to append.
+            file_put_contents('./broker-log_'.date("j.n.Y").'.txt', $log, FILE_APPEND);
+        }
+
         if (!isset($this->userinfo)) {
             $this->userinfo = $this->request('GET', 'userInfo');
+
+            // 將結果暫存在cookie中，1 小时过期
+            setcookie("flnet_user_info", json_encode($this->userinfo), time()+3600);
         }
 
         return $this->userinfo;
