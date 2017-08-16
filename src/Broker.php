@@ -273,10 +273,10 @@ class Broker
     public function getUserInfo()
     {
         // 若cookie有值，直接從cookie拿
-        if (isset($_COOKIE['flnet_user_info']) && $_COOKIE['flnet_user_info']) {
-            $this->userinfo = json_decode($_COOKIE['flnet_user_info']);
+        if (isset($_COOKIE['sso_user_info']) && $_COOKIE['sso_user_info']) {
+            $this->userinfo = json_decode($_COOKIE['sso_user_info']);
             //Something to write to txt log
-            $log  = "$this->userinfo result = " . json_encode($this->userinfo) .'\n';
+            $log  = "this->userinfo result = " . json_encode($this->userinfo) .'\n';
             //Save string to log, use FILE_APPEND to append.
             file_put_contents('./broker-log_'.date("j.n.Y").'.txt', $log, FILE_APPEND);
         }
@@ -285,7 +285,7 @@ class Broker
             $this->userinfo = $this->request('GET', 'userInfo');
 
             // 將結果暫存在cookie中，1 小时过期
-            setcookie("flnet_user_info", json_encode($this->userinfo), time()+3600);
+            setcookie("sso_user_info", json_encode($this->userinfo), time()+3600);
         }
 
         return $this->userinfo;
