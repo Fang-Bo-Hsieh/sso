@@ -207,7 +207,7 @@ class Broker
 //        exit(json_encode($response));
 
         //Something to write to txt log
-        $log  = "response = " . json_encode($response);
+        $log  = "response = " . json_encode($response).'\n';;
         //Save string to log, use FILE_APPEND to append.
         file_put_contents('./broker-log_'.date("j.n.Y").'.txt', $log, FILE_APPEND);
 
@@ -254,11 +254,6 @@ class Broker
         $result = $this->request('POST', 'login', compact('username', 'password'));
         $this->userinfo = $result;
 
-        //Something to write to txt log
-        $log  = "login result = " . json_encode($result);
-        //Save string to log, use FILE_APPEND to append.
-        file_put_contents('./broker-log_'.date("j.n.Y").'.txt', $log, FILE_APPEND);
-
         return $this->userinfo;
     }
 
@@ -281,7 +276,7 @@ class Broker
         if (isset($_COOKIE['flnet_user_info']) && $_COOKIE['flnet_user_info']) {
             $this->userinfo = json_decode($_COOKIE['flnet_user_info']);
             //Something to write to txt log
-            $log  = "cookie result = " . json_encode($this->userinfo);
+            $log  = "$this->userinfo result = " . json_encode($this->userinfo) .'\n';
             //Save string to log, use FILE_APPEND to append.
             file_put_contents('./broker-log_'.date("j.n.Y").'.txt', $log, FILE_APPEND);
         }
