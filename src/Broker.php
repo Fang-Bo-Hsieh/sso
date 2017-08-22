@@ -207,9 +207,9 @@ class Broker
 //        exit(json_encode($response));
 
         //Something to write to txt log
-        $log  = "response = " . json_encode($response).'\n';;
-        //Save string to log, use FILE_APPEND to append.
-        file_put_contents('./broker-log_'.date("j.n.Y").'.txt', $log, FILE_APPEND);
+//        $log  = "response = " . json_encode($response).'\n';;
+//        //Save string to log, use FILE_APPEND to append.
+//        file_put_contents('./broker-log_'.date("j.n.Y").'.txt', $log, FILE_APPEND);
 
         if (curl_errno($ch) != 0) {
             $message = 'Server request failed: ' . curl_error($ch);
@@ -276,9 +276,9 @@ class Broker
         if (isset($_COOKIE['sso_user_info']) && $_COOKIE['sso_user_info']) {
             $this->userinfo = json_decode($_COOKIE['sso_user_info']);
             //Something to write to txt log
-            $log  = "this->userinfo result = " . json_encode($this->userinfo) .'\n';
-            //Save string to log, use FILE_APPEND to append.
-            file_put_contents('./broker-log_'.date("j.n.Y").'.txt', $log, FILE_APPEND);
+//            $log  = "this->userinfo result = " . json_encode($this->userinfo) .'\n';
+//            //Save string to log, use FILE_APPEND to append.
+//            file_put_contents('./broker-log_'.date("j.n.Y").'.txt', $log, FILE_APPEND);
         }
 
         if (!isset($this->userinfo)) {
