@@ -14,14 +14,14 @@ try {
 //        $broker->logout();
 //        header("Location: index.php", truhttp://localhost:9001/login.phpe);
         $broker->clearToken();
-        setcookie("flnet_user_info", null);
+        setcookie("sso_user_info", null);
         header('Location: ' . getenv('SSO_SERVER').'/logout?redirect_url='.$indexUrl);
     } elseif ($broker->getUserInfo()) {
         header("Location: profile.php", true);
     } else {
         // 轉跳到sso server的login.php
         //Encryption
-        $encoded = encode($sessionId, 'flnet-sso');
+        $encoded = encode($sessionId, 'sso-');
         $params = [
                 'redirect_url' => $currentLink,
                 'bid' => $encoded,
