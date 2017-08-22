@@ -281,7 +281,7 @@ class Broker
 //            file_put_contents('./broker-log_'.date("j.n.Y").'.txt', $log, FILE_APPEND);
         }
 
-        if (!isset($this->userinfo)) {
+        if (!isset($this->userinfo) || !$this->userinfo) {
             $this->userinfo = $this->request('GET', 'userInfo');
 
             // 將結果暫存在cookie中，1 小时过期
