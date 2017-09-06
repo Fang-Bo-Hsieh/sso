@@ -109,6 +109,12 @@ class Broker
     public function clearToken()
     {
         setcookie($this->getCookieName(), null, 1, '/');
+
+        if (isset($_COOKIE['sso_user_info'])) {
+            unset($_COOKIE['sso_user_info']);
+            setcookie('sso_user_info', '', time() - 3600);
+        }
+        
         $this->token = null;
     }
 
@@ -289,6 +295,27 @@ class Broker
         }
 
         return $this->userinfo;
+    }
+
+    /**
+     * Encode token string
+     *
+     * @return string
+     */
+    public function encode($string,$key) {
+        $hash = '';
+        $key = sha1($key);
+        $strLen = strlen($string);
+        $keyLen = strlen($key);
+        $j = 0;
+        for ($i = 0; $i < $strLen; $i++) {
+            $ordStr = ord(substr($string,$i,1));
+            if ($j == $keyLen) { $j = 0; }
+            $ordKey = ord(substr($key,$j,1));
+            $j++;
+            $hash .= strrev(base_convert(dechex($ordStr + $ordKey),16,36));
+        }
+        return $hash;
     }
 
     /**

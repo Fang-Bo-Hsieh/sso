@@ -12,16 +12,15 @@ $sessionId = $broker->getSessionId();
 try {
     if (!empty($_GET['logout'])) {
 //        $broker->logout();
-//        header("Location: index.php", truhttp://localhost:9001/login.phpe);
+//        header("Location: index.php", truhttp://localhost:9001/login.php);
         $broker->clearToken();
-        setcookie("sso_user_info", null);
         header('Location: ' . getenv('SSO_SERVER').'/logout?redirect_url='.$indexUrl);
     } elseif ($broker->getUserInfo()) {
         header("Location: profile.php", true);
     } else {
         // 轉跳到sso server的login.php
         //Encryption
-        $encoded = encode($sessionId, 'sso-');
+        $encoded = $broker->encode($sessionId, 'sso-');
         $params = [
                 'redirect_url' => $currentLink,
                 'bid' => $encoded,
@@ -37,20 +36,4 @@ try {
 } catch (Jasny\SSO\Exception $e) {
     $errmsg = $e->getMessage();
     echo $errmsg;
-}
-
-function encode($string,$key) {
-    $hash = '';
-    $key = sha1($key);
-    $strLen = strlen($string);
-    $keyLen = strlen($key);
-    $j = 0;
-    for ($i = 0; $i < $strLen; $i++) {
-        $ordStr = ord(substr($string,$i,1));
-        if ($j == $keyLen) { $j = 0; }
-        $ordKey = ord(substr($key,$j,1));
-        $j++;
-        $hash .= strrev(base_convert(dechex($ordStr + $ordKey),16,36));
-    }
-    return $hash;
 }
