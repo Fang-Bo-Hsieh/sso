@@ -365,7 +365,7 @@ abstract class Server
      * @param string $key
      * @param string $value
      */
-    protected function setSessionData($key, $value)
+    public function setSessionData($key, $value)
     {
         if (!isset($value)) {
             unset($_SESSION[$key]);
