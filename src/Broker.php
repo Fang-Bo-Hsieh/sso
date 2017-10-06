@@ -34,6 +34,12 @@ class Broker
     public $token;
 
     /**
+     * Sso server is alive
+     * @var string
+     */
+    protected $isSsoSiteAlive;
+
+    /**
      * User info recieved from the server.
      * @var array
      */
@@ -162,12 +168,13 @@ class Broker
             $returnUrl = $protocol . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
         }
 
-        $params = ['return_url' => $returnUrl];
-        $url = $this->getAttachUrl($params);
-
-        if (!$this->checkSiteAlive($url)) {
+        // 若無法連上sso網站的登入畫面，則不訪問sso server
+        if (!$this->checkSsoSiteAlive($this->url.'/login')) {
             return;
         }
+
+        $params = ['return_url' => $returnUrl];
+        $url = $this->getAttachUrl($params);
 
         header("Location: $url", true, 307);
         echo "You're redirected to <a href='$url'>$url</a>";
@@ -347,10 +354,13 @@ class Broker
      * @param string $url
      * @return boolean
      */
-    public function checkSiteAlive($url)
+    public function checkSsoSiteAlive($url)
     {
         $curl = curl_init($url);
-        curl_setopt($curl, CURLOPT_NOBODY, true);
+        curl_setopt($curl,CURLOPT_CONNECTTIMEOUT,5);
+        curl_setopt($curl,CURLOPT_HEADER,true);
+        curl_setopt($curl,CURLOPT_NOBODY,true);
+        curl_setopt($curl,CURLOPT_RETURNTRANSFER,true);
         $result = curl_exec($curl);
         if ($result !== false) {
             $statusCode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
