@@ -165,6 +165,10 @@ class Broker
         $params = ['return_url' => $returnUrl];
         $url = $this->getAttachUrl($params);
 
+        if (!$this->checkSiteAlive($url)) {
+            return;
+        }
+
         header("Location: $url", true, 307);
         echo "You're redirected to <a href='$url'>$url</a>";
         exit();
@@ -336,5 +340,27 @@ class Broker
         $command = join('-', $parts);
 
         return $this->request($method, $command, $args);
+    }
+
+    /**
+     * 檢查網站是否能存活
+     * @param string $url
+     * @return boolean
+     */
+    public function checkSiteAlive($url)
+    {
+        $curl = curl_init($url);
+        curl_setopt($curl, CURLOPT_NOBODY, true);
+        $result = curl_exec($curl);
+        if ($result !== false) {
+            $statusCode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+            if ($statusCode == 404) {
+                return false;
+            } else {
+                return true;
+            }
+        } else {
+            return false;
+        }
     }
 }
