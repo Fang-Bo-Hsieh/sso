@@ -210,6 +210,13 @@ class Broker
         $url = $this->getRequestUrl($command, !$data || $method === 'POST' ? [] : $data);
 
         $ch = curl_init($url);
+
+        $SSL = substr($url, 0, 8) == "https://" ? true : false;
+        if ($SSL) {
+            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);   // 只信任CA颁布的证书
+            curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 2); // 检查证书中是否设置域名，并且是否与提供的主机名匹配
+        }
+
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $method);
         curl_setopt($ch, CURLOPT_VERBOSE, true);
@@ -357,6 +364,13 @@ class Broker
     public function checkSsoSiteAlive($url)
     {
         $curl = curl_init($url);
+
+        $SSL = substr($url, 0, 8) == "https://" ? true : false;
+        if ($SSL) {
+            curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, true);   // 只信任CA颁布的证书
+            curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, 2); // 检查证书中是否设置域名，并且是否与提供的主机名匹配
+        }
+
         curl_setopt($curl,CURLOPT_CONNECTTIMEOUT,5);
         curl_setopt($curl,CURLOPT_HEADER,true);
         curl_setopt($curl,CURLOPT_NOBODY,true);
