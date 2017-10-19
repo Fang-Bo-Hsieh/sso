@@ -367,7 +367,7 @@ class Broker
 
         $SSL = substr($url, 0, 8) == "https://" ? true : false;
         if ($SSL) {
-            curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, true);   // 只信任CA颁布的证书
+            curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);   // 只信任CA颁布的证书
             curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, 2); // 检查证书中是否设置域名，并且是否与提供的主机名匹配
         }
 
