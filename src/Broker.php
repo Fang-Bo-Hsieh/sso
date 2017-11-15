@@ -58,7 +58,7 @@ class Broker
      * @param string $broker My identifier, given by SSO provider.
      * @param string $secret My secret word, given by SSO provider.
      */
-    public function __construct($url, $broker, $secret, $cookie_lifetime = 3600)
+    public function __construct($url, $broker, $secret, $cookie_lifetime = 7200)
     {
         if (!$url) throw new \InvalidArgumentException("SSO server URL not specified");
         if (!$broker) throw new \InvalidArgumentException("SSO broker id not specified");
@@ -116,9 +116,8 @@ class Broker
     {
         setcookie($this->getCookieName(), null, 1, '/');
 
-        if (isset($_COOKIE['sso_user_info'])) {
-            unset($_COOKIE['sso_user_info']);
-            setcookie('sso_user_info', '', time() - 3600);
+        if (isset($_SESSION['sso_user_info'])) {
+            unset($_SESSION['sso_user_info']);
         }
         
         $this->token = null;
@@ -144,12 +143,14 @@ class Broker
     {
         $this->generateToken();
 
-        $data = [
-                'command' => 'attach',
-                'broker' => $this->broker,
-                'token' => $this->token,
-                'checksum' => hash('sha256', 'attach' . $this->token . $this->secret)
-            ] + $_GET;
+        $data = array(
+            'command' => 'attach',
+            'broker' => $this->broker,
+            'token' => $this->token,
+            'checksum' => hash('sha256', 'attach' . $this->token . $this->secret)
+        );
+
+        $data = array_merge($data, $_GET);
 
         return $this->url . "?" . http_build_query($data + $params);
     }
@@ -169,7 +170,7 @@ class Broker
         }
 
         // 若無法連上sso網站的登入畫面，則不訪問sso server
-        if (!$this->checkSsoSiteAlive($this->url.'/login')) {
+        if (!$this->checkSsoSiteAlive($this->url.'/login') && !$this->checkSsoSiteAlive($this->url.'/login.php')) {
             return;
         }
 
@@ -296,9 +297,16 @@ class Broker
      */
     public function getUserInfo()
     {
-        // 若cookie有值，直接從cookie拿
-        if (isset($_COOKIE['sso_user_info']) && $_COOKIE['sso_user_info']) {
-            $this->userinfo = json_decode($_COOKIE['sso_user_info']);
+        // 用broker端的session來儲存user data
+        // 把 session 的生命週期調到想要的時間
+        ini_set('session.gc_maxlifetime', $this->cookie_lifetime);
+
+        // 都設定好之後再啟動 session
+        session_start();
+
+        // 若session有值，直接從session拿
+        if (isset($_SESSION['sso_user_info']) && $_SESSION['sso_user_info']) {
+            $this->userinfo = json_decode($_SESSION['sso_user_info']);
             //Something to write to txt log
 //            $log  = "this->userinfo result = " . json_encode($this->userinfo) .'\n';
 //            //Save string to log, use FILE_APPEND to append.
@@ -308,8 +316,8 @@ class Broker
         if (!isset($this->userinfo) || !$this->userinfo) {
             $this->userinfo = $this->request('GET', 'userInfo');
 
-            // 將結果暫存在cookie中，1 小时过期
-            setcookie("sso_user_info", json_encode($this->userinfo), time()+3600);
+            // 將結果暫存在session中，1 小时过期
+            $_SESSION['sso_user_info'] = json_encode($this->userinfo);
         }
 
         return $this->userinfo;

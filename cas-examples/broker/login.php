@@ -26,7 +26,7 @@ try {
                 'bid' => $encoded,
             ];
 
-        $url = getenv('SSO_SERVER').'/login?'.http_build_query($params);
+        $url = getenv('SSO_SERVER').'/login.php?'.http_build_query($params);
         header('Location: ' . $url);
     }
 
