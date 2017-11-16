@@ -306,7 +306,7 @@ class Broker
     {
         // 用broker端的session來儲存user data
         // 把 session 的生命週期調到想要的時間
-        ini_set('session.gc_maxlifetime', $this->cookie_lifetime);
+//        ini_set('session.gc_maxlifetime', $this->cookie_lifetime);
 
         // 若cookie有值，直接從cookie拿
         if (isset($_COOKIE['sso_user_uuid']) && $_COOKIE['sso_user_uuid']) {
@@ -314,16 +314,16 @@ class Broker
         }
 
         // 都設定好之後再啟動 session
-        session_start();
+//        session_start();
 
         // 若session有值，直接從session拿
-        if ($this->uuid && isset($_SESSION[$this->uuid]) && $_SESSION[$this->uuid]) {
-            $this->userinfo = json_decode($_SESSION[$this->uuid]);
-            //Something to write to txt log
-//            $log  = "this->userinfo result = " . json_encode($this->userinfo) .'\n';
-//            //Save string to log, use FILE_APPEND to append.
-//            file_put_contents('./broker-log_'.date("j.n.Y").'.txt', $log, FILE_APPEND);
-        }
+//        if ($this->uuid && isset($_SESSION[$this->uuid]) && $_SESSION[$this->uuid]) {
+//            $this->userinfo = json_decode($_SESSION[$this->uuid]);
+//            //Something to write to txt log
+////            $log  = "this->userinfo result = " . json_encode($this->userinfo) .'\n';
+////            //Save string to log, use FILE_APPEND to append.
+////            file_put_contents('./broker-log_'.date("j.n.Y").'.txt', $log, FILE_APPEND);
+//        }
 
         if (!isset($this->userinfo) || !$this->userinfo) {
             $this->userinfo = $this->request('GET', 'userInfo');
@@ -335,7 +335,7 @@ class Broker
                 setcookie("sso_user_uuid", $this->uuid, $this->cookie_lifetime);
 
                 // 將結果暫存在session中，1 小时过期
-                $_SESSION[$this->uuid] = json_encode($this->userinfo);
+//                $_SESSION[$this->uuid] = json_encode($this->userinfo);
             }
         }
 
