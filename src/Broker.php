@@ -46,6 +46,12 @@ class Broker
     protected $userinfo;
 
     /**
+     * User uuid recieved from the server.
+     * @var array
+     */
+    protected $uuid;
+
+    /**
      * Cookie lifetime
      * @var int
      */
@@ -116,8 +122,9 @@ class Broker
     {
         setcookie($this->getCookieName(), null, 1, '/');
 
-        if (isset($_SESSION['sso_user_info'])) {
-            unset($_SESSION['sso_user_info']);
+        if (isset($_COOKIE['sso_user_uuid'])) {
+            unset($_COOKIE['sso_user_uuid']);
+            setcookie('sso_user_uuid', '', time() - 3600);
         }
         
         $this->token = null;
@@ -301,12 +308,17 @@ class Broker
         // 把 session 的生命週期調到想要的時間
         ini_set('session.gc_maxlifetime', $this->cookie_lifetime);
 
+        // 若cookie有值，直接從cookie拿
+        if (isset($_COOKIE['sso_user_uuid']) && $_COOKIE['sso_user_uuid']) {
+            $this->uuid = $_COOKIE['sso_user_uuid'];
+        }
+
         // 都設定好之後再啟動 session
         session_start();
 
         // 若session有值，直接從session拿
-        if (isset($_SESSION['sso_user_info']) && $_SESSION['sso_user_info']) {
-            $this->userinfo = json_decode($_SESSION['sso_user_info']);
+        if ($this->uuid && isset($_SESSION[$this->uuid]) && $_SESSION[$this->uuid]) {
+            $this->userinfo = json_decode($_SESSION[$this->uuid]);
             //Something to write to txt log
 //            $log  = "this->userinfo result = " . json_encode($this->userinfo) .'\n';
 //            //Save string to log, use FILE_APPEND to append.
@@ -316,8 +328,15 @@ class Broker
         if (!isset($this->userinfo) || !$this->userinfo) {
             $this->userinfo = $this->request('GET', 'userInfo');
 
-            // 將結果暫存在session中，1 小时过期
-            $_SESSION['sso_user_info'] = json_encode($this->userinfo);
+            if (isset($this->userinfo->uuid) && $this->userinfo->uuid) {
+                $this->uuid = $this->userinfo->uuid;
+
+                // 將uuid結果暫存在cookie中，1 小时过期
+                setcookie("sso_user_uuid", $this->uuid, time()+3600);
+
+                // 將結果暫存在session中，1 小时过期
+                $_SESSION[$this->uuid] = json_encode($this->userinfo);
+            }
         }
 
         return $this->userinfo;
