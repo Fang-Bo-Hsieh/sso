@@ -332,7 +332,7 @@ class Broker
                 $this->uuid = $this->userinfo->uuid;
 
                 // 將uuid結果暫存在cookie中，1 小时过期
-                setcookie("sso_user_uuid", $this->uuid, time()+3600);
+                setcookie("sso_user_uuid", $this->uuid, $this->cookie_lifetime);
 
                 // 將結果暫存在session中，1 小时过期
                 $_SESSION[$this->uuid] = json_encode($this->userinfo);
