@@ -46,12 +46,6 @@ class Broker
     protected $userinfo;
 
     /**
-     * User uuid recieved from the server.
-     * @var array
-     */
-    protected $uuid;
-
-    /**
      * Cookie lifetime
      * @var int
      */
@@ -64,7 +58,7 @@ class Broker
      * @param string $broker My identifier, given by SSO provider.
      * @param string $secret My secret word, given by SSO provider.
      */
-    public function __construct($url, $broker, $secret, $cookie_lifetime = 7200)
+    public function __construct($url, $broker, $secret, $cookie_lifetime = 3600)
     {
         if (!$url) throw new \InvalidArgumentException("SSO server URL not specified");
         if (!$broker) throw new \InvalidArgumentException("SSO broker id not specified");
@@ -122,11 +116,11 @@ class Broker
     {
         setcookie($this->getCookieName(), null, 1, '/');
 
-        if (isset($_COOKIE['sso_user_uuid'])) {
-            unset($_COOKIE['sso_user_uuid']);
-            setcookie('sso_user_uuid', '', time() - 3600);
+        if (isset($_COOKIE['sso_user_info'])) {
+            unset($_COOKIE['sso_user_info']);
+            setcookie('sso_user_info', '', time() - 3600);
         }
-        
+
         $this->token = null;
     }
 
@@ -150,14 +144,12 @@ class Broker
     {
         $this->generateToken();
 
-        $data = array(
-            'command' => 'attach',
-            'broker' => $this->broker,
-            'token' => $this->token,
-            'checksum' => hash('sha256', 'attach' . $this->token . $this->secret)
-        );
-
-        $data = array_merge($data, $_GET);
+        $data = [
+                'command' => 'attach',
+                'broker' => $this->broker,
+                'token' => $this->token,
+                'checksum' => hash('sha256', 'attach' . $this->token . $this->secret)
+            ] + $_GET;
 
         return $this->url . "?" . http_build_query($data + $params);
     }
@@ -177,7 +169,7 @@ class Broker
         }
 
         // 若無法連上sso網站的登入畫面，則不訪問sso server
-        if (!$this->checkSsoSiteAlive($this->url.'/login') && !$this->checkSsoSiteAlive($this->url.'/login.php')) {
+        if (!$this->checkSsoSiteAlive($this->url.'/login')) {
             return;
         }
 
@@ -304,39 +296,20 @@ class Broker
      */
     public function getUserInfo()
     {
-        // 用broker端的session來儲存user data
-        // 把 session 的生命週期調到想要的時間
-//        ini_set('session.gc_maxlifetime', $this->cookie_lifetime);
-
         // 若cookie有值，直接從cookie拿
-        if (isset($_COOKIE['sso_user_uuid']) && $_COOKIE['sso_user_uuid']) {
-            $this->uuid = $_COOKIE['sso_user_uuid'];
+        if (isset($_COOKIE['sso_user_info']) && $_COOKIE['sso_user_info']) {
+            $this->userinfo = json_decode($_COOKIE['sso_user_info']);
+            //Something to write to txt log
+//            $log  = "this->userinfo result = " . json_encode($this->userinfo) .'\n';
+//            //Save string to log, use FILE_APPEND to append.
+//            file_put_contents('./broker-log_'.date("j.n.Y").'.txt', $log, FILE_APPEND);
         }
-
-        // 都設定好之後再啟動 session
-//        session_start();
-
-        // 若session有值，直接從session拿
-//        if ($this->uuid && isset($_SESSION[$this->uuid]) && $_SESSION[$this->uuid]) {
-//            $this->userinfo = json_decode($_SESSION[$this->uuid]);
-//            //Something to write to txt log
-////            $log  = "this->userinfo result = " . json_encode($this->userinfo) .'\n';
-////            //Save string to log, use FILE_APPEND to append.
-////            file_put_contents('./broker-log_'.date("j.n.Y").'.txt', $log, FILE_APPEND);
-//        }
 
         if (!isset($this->userinfo) || !$this->userinfo) {
             $this->userinfo = $this->request('GET', 'userInfo');
 
-            if (isset($this->userinfo['uuid']) && $this->userinfo['uuid']) {
-                $this->uuid = $this->userinfo['uuid'];
-
-                // 將uuid結果暫存在cookie中，1 小时过期
-                setcookie("sso_user_uuid", $this->uuid, $this->cookie_lifetime);
-
-                // 將結果暫存在session中，1 小时过期
-//                $_SESSION[$this->uuid] = json_encode($this->userinfo);
-            }
+            // 將結果暫存在cookie中，1 小时过期
+            setcookie("sso_user_info", json_encode($this->userinfo), time()+3600);
         }
 
         return $this->userinfo;
