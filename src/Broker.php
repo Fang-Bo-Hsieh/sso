@@ -328,8 +328,8 @@ class Broker
         if (!isset($this->userinfo) || !$this->userinfo) {
             $this->userinfo = $this->request('GET', 'userInfo');
 
-            if (isset($this->userinfo->uuid) && $this->userinfo->uuid) {
-                $this->uuid = $this->userinfo->uuid;
+            if (isset($this->userinfo['uuid']) && $this->userinfo['uuid']) {
+                $this->uuid = $this->userinfo['uuid'];
 
                 // 將uuid結果暫存在cookie中，1 小时过期
                 setcookie("sso_user_uuid", $this->uuid, $this->cookie_lifetime);
