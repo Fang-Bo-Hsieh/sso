@@ -298,7 +298,7 @@ class Broker
     {
         // 若cookie有值，直接從cookie拿
         if (isset($_COOKIE['sso_user_info']) && $_COOKIE['sso_user_info']) {
-            $this->userinfo = json_decode($_COOKIE['sso_user_info']);
+//            $this->userinfo = json_decode($_COOKIE['sso_user_info']);
             //Something to write to txt log
 //            $log  = "this->userinfo result = " . json_encode($this->userinfo) .'\n';
 //            //Save string to log, use FILE_APPEND to append.
@@ -309,7 +309,7 @@ class Broker
             $this->userinfo = $this->request('GET', 'userInfo');
 
             // 將結果暫存在cookie中，1 小时过期
-            setcookie("sso_user_info", json_encode($this->userinfo), time()+3600);
+//            setcookie("sso_user_info", json_encode($this->userinfo), time()+3600);
         }
 
         return $this->userinfo;
