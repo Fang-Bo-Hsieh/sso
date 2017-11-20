@@ -122,9 +122,12 @@ class Broker
     {
         setcookie($this->getCookieName(), null, 1, '/');
 
-        if (isset($_COOKIE['sso_user_info'])) {
-            unset($_COOKIE['sso_user_info']);
-            setcookie('sso_user_info', '', time() - 3600);
+        session_start();
+
+        // 若session有值，登出後清掉
+        if ($this->uuid && isset($_SESSION[$this->uuid]) && $_SESSION[$this->uuid]) {
+            unset($_SESSION[$this->uuid]);
+            $this->uuid = null;
         }
 
         $this->token = null;
