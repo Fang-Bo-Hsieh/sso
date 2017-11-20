@@ -46,6 +46,12 @@ class Broker
     protected $userinfo;
 
     /**
+     * User uuid.
+     * @var string
+     */
+    protected $uuid;
+
+    /**
      * Cookie lifetime
      * @var int
      */
@@ -296,20 +302,24 @@ class Broker
      */
     public function getUserInfo()
     {
-        // 若cookie有值，直接從cookie拿
-        if (isset($_COOKIE['sso_user_info']) && $_COOKIE['sso_user_info']) {
-//            $this->userinfo = json_decode($_COOKIE['sso_user_info']);
-            //Something to write to txt log
-//            $log  = "this->userinfo result = " . json_encode($this->userinfo) .'\n';
-//            //Save string to log, use FILE_APPEND to append.
-//            file_put_contents('./broker-log_'.date("j.n.Y").'.txt', $log, FILE_APPEND);
+        // 都設定好之後再啟動 session
+        session_start();
+
+        // 若session有值，直接從session拿
+        if ($this->uuid && isset($_SESSION[$this->uuid]) && $_SESSION[$this->uuid]) {
+            $this->userinfo = json_decode($_SESSION[$this->uuid]);
         }
 
         if (!isset($this->userinfo) || !$this->userinfo) {
             $this->userinfo = $this->request('GET', 'userInfo');
 
-            // 將結果暫存在cookie中，1 小时过期
-//            setcookie("sso_user_info", json_encode($this->userinfo), time()+3600);
+            // 用uuid作為key值
+            if (isset($this->userinfo['uuid']) && $this->userinfo['uuid']) {
+                $this->uuid = $this->userinfo['uuid'];
+
+                // 將結果暫存在session中，1 小时过期
+                $_SESSION[$this->uuid] = json_encode($this->userinfo);
+            }
         }
 
         return $this->userinfo;
