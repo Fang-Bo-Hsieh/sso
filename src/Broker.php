@@ -184,7 +184,7 @@ class Broker
             return;
         }
 
-        $params = ['return_url' => $returnUrl];
+        $params = array('return_url' => $returnUrl);
         $url = $this->getAttachUrl($params);
 
         header("Location: $url", true, 307);
@@ -218,7 +218,7 @@ class Broker
         if (!$this->isAttached()) {
             throw new NotAttachedException('No token');
         }
-        $url = $this->getRequestUrl($command, !$data || $method === 'POST' ? [] : $data);
+        $url = $this->getRequestUrl($command, !$data || $method === 'POST' ? array() : $data);
 
         $ch = curl_init($url);
 
@@ -231,7 +231,7 @@ class Broker
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $method);
         curl_setopt($ch, CURLOPT_VERBOSE, true);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, ['Accept: application/json', 'Authorization: Bearer '. $this->getSessionID()]);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, array('Accept: application/json', 'Authorization: Bearer ' . $this->getSessionID()));
 
         if ($method === 'POST' && !empty($data)) {
             $post = is_string($data) ? $data : http_build_query($data);
@@ -363,7 +363,7 @@ class Broker
         $sentence = strtolower(preg_replace('/([a-z0-9])([A-Z])/', '$1 $2', $fn));
         $parts = explode(' ', $sentence);
 
-        $method = count($parts) > 1 && in_array(strtoupper($parts[0]), ['GET', 'DELETE'])
+        $method = count($parts) > 1 && in_array(strtoupper($parts[0]), array('GET', 'DELETE'))
             ? strtoupper(array_shift($parts))
             : 'POST';
         $command = join('-', $parts);
