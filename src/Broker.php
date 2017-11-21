@@ -153,12 +153,14 @@ class Broker
     {
         $this->generateToken();
 
-        $data = [
-                'command' => 'attach',
-                'broker' => $this->broker,
-                'token' => $this->token,
-                'checksum' => hash('sha256', 'attach' . $this->token . $this->secret)
-            ] + $_GET;
+        $data = array(
+            'command' => 'attach',
+            'broker' => $this->broker,
+            'token' => $this->token,
+            'checksum' => hash('sha256', 'attach' . $this->token . $this->secret)
+        );
+
+        $data = array_merge($data, $_GET);
 
         return $this->url . "?" . http_build_query($data + $params);
     }
