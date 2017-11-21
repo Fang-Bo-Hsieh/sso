@@ -149,7 +149,7 @@ class Broker
      * @param array $params
      * @return string
      */
-    public function getAttachUrl($params = [])
+    public function getAttachUrl($params = array())
     {
         $this->generateToken();
 
@@ -199,7 +199,7 @@ class Broker
      * @param array  $params   Query parameters
      * @return string
      */
-    protected function getRequestUrl($command, $params = [])
+    protected function getRequestUrl($command, $params = array())
     {
         $params['command'] = $command;
         return $this->url . '?' . http_build_query($params);
