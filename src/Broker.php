@@ -441,12 +441,12 @@ class Broker
         }
     }
 
+
     /**
-     * @return array|object
-     * @throws Exception
-     * @throws NotAttachedException
+     * 從session中取得用戶在iot的資料
+     * @return null
      */
-    private function getUserInfoFromSession()
+    public function getUserInfoFromSession()
     {
         // 都設定好之後再啟動 session
         session_start();
@@ -462,7 +462,11 @@ class Broker
         return NULL;
     }
 
-    private function getUuidFromSession()
+    /**
+     * 從session中取得用戶在iot的uuid
+     * @return null
+     */
+    public function getUuidFromSession()
     {
         if (isset($_SESSION['uuid']) && $_SESSION['uuid']) {
             return $_SESSION['uuid'];
@@ -471,7 +475,10 @@ class Broker
         return NULL;
     }
 
-    private function clearUserInfoFromSession()
+    /**
+     * 清除在session中用戶iot的資料
+     */
+    public function clearUserInfoFromSession()
     {
         unset($_SESSION['uuid']);
         unset($_SESSION[$this->uuid]);
