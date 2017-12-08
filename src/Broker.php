@@ -79,6 +79,24 @@ class Broker
     }
 
     /**
+     * singleton pattern
+     * @param $url
+     * @param $broker
+     * @param $secret
+     * @param int $cookie_lifetime
+     * @return Broker
+     */
+    public static function &instance($url, $broker, $secret, $cookie_lifetime = 7200)
+    {
+        static $instance;
+        if (!$instance) {
+            $instance = new self($url, $broker, $secret, $cookie_lifetime);
+        }
+
+        return $instance;
+    }
+
+    /**
      * Get the cookie name.
      *
      * Note: Using the broker name in the cookie name.
