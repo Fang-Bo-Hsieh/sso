@@ -64,7 +64,7 @@ class Broker
      * @param string $broker My identifier, given by SSO provider.
      * @param string $secret My secret word, given by SSO provider.
      */
-    public function __construct($url, $broker, $secret, $cookie_lifetime = 3600)
+    public function __construct($url, $broker, $secret, $cookie_lifetime = 7200)
     {
         if (!$url) throw new \InvalidArgumentException("SSO server URL not specified");
         if (!$broker) throw new \InvalidArgumentException("SSO broker id not specified");
@@ -307,15 +307,10 @@ class Broker
      */
     public function getUserInfo()
     {
-        // 都設定好之後再啟動 session
-        session_start();
-
-        // 若session有值，直接從session拿
-        if ($this->uuid && isset($_SESSION[$this->uuid]) && $_SESSION[$this->uuid]) {
-            $this->userinfo = json_decode($_SESSION[$this->uuid]);
-        }
+        $this->userinfo = $this->getUserInfoFromSession();
 
         if (!isset($this->userinfo) || !$this->userinfo) {
+            // 透過API從sso server獲取用戶資料
             $this->userinfo = $this->request('GET', 'userInfo');
 
             // 用uuid作為key值
@@ -326,6 +321,28 @@ class Broker
                 $_SESSION[$this->uuid] = json_encode($this->userinfo);
             }
         }
+
+        return $this->userinfo;
+
+    }
+
+    /**
+     * Update user information which store in session.
+     *
+     * @param $userInfoArray
+     * @return object|null
+     */
+    public function updateUserInfoToSession($userInfoArray)
+    {
+        $this->userinfo = $this->getUserInfoFromSession();
+        if (!isset($this->userinfo) || !$this->userinfo) {
+            return false;
+        }
+
+        $this->userinfo = $userInfoArray;
+        $this->uuid = $userInfoArray['uuid'];
+        // 將session中的值更新
+        $_SESSION[$this->uuid] = json_encode($userInfoArray);
 
         return $this->userinfo;
     }
@@ -401,5 +418,23 @@ class Broker
         } else {
             return false;
         }
+    }
+
+    /**
+     * @return array|object
+     * @throws Exception
+     * @throws NotAttachedException
+     */
+    private function getUserInfoFromSession()
+    {
+        // 都設定好之後再啟動 session
+        session_start();
+
+        // 若session有值，直接從session拿
+        if ($this->uuid && isset($_SESSION[$this->uuid]) && $_SESSION[$this->uuid]) {
+            $this->userinfo = json_decode($_SESSION[$this->uuid]);
+        }
+
+        return $this->userinfo;
     }
 }
