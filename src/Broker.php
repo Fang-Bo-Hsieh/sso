@@ -142,10 +142,12 @@ class Broker
 
         session_start();
 
-        // 若session有值，登出後清掉
-        if ($this->uuid && isset($_SESSION[$this->uuid]) && $_SESSION[$this->uuid]) {
-            unset($_SESSION[$this->uuid]);
-            $this->uuid = null;
+        // 確認session中uuid是否有值
+        $this->userinfo = $this->getUserInfoFromSession();
+
+        // 若session有值，登出時需要清掉
+        if ($this->userinfo) {
+            $this->clearUserInfoFromSession();
         }
 
         $this->token = null;
@@ -335,7 +337,8 @@ class Broker
             if (isset($this->userinfo['uuid']) && $this->userinfo['uuid']) {
                 $this->uuid = $this->userinfo['uuid'];
 
-                // 將結果暫存在session中，1 小时过期
+                // 將結果暫存在session中，2小时後session過期
+                $_SESSION['uuid'] = $this->uuid;
                 $_SESSION[$this->uuid] = json_encode($this->userinfo);
             }
         }
@@ -448,11 +451,31 @@ class Broker
         // 都設定好之後再啟動 session
         session_start();
 
+        // 確認session中uuid是否有值
+        $this->uuid = $this->getUuidFromSession();
+
         // 若session有值，直接從session拿
         if ($this->uuid && isset($_SESSION[$this->uuid]) && $_SESSION[$this->uuid]) {
-            $this->userinfo = json_decode($_SESSION[$this->uuid]);
+            return json_decode($_SESSION[$this->uuid]);
         }
 
-        return $this->userinfo;
+        return NULL;
+    }
+
+    private function getUuidFromSession()
+    {
+        if (isset($_SESSION['uuid']) && $_SESSION['uuid']) {
+            return $_SESSION['uuid'];
+        }
+
+        return NULL;
+    }
+
+    private function clearUserInfoFromSession()
+    {
+        unset($_SESSION['uuid']);
+        unset($_SESSION[$this->uuid]);
+        $this->uuid = null;
+        $this->userinfo = null;
     }
 }
