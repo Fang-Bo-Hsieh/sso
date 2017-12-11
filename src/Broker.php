@@ -140,8 +140,6 @@ class Broker
     {
         setcookie($this->getCookieName(), null, 1, '/');
 
-        session_start();
-
         // 確認session中uuid是否有值
         $this->userinfo = $this->getUserInfoFromSession();
 
@@ -448,9 +446,6 @@ class Broker
      */
     public function getUserInfoFromSession()
     {
-        // 都設定好之後再啟動 session
-        session_start();
-
         // 確認session中uuid是否有值
         $this->uuid = $this->getUuidFromSession();
 
@@ -468,6 +463,8 @@ class Broker
      */
     public function getUuidFromSession()
     {
+        session_start();
+
         if (isset($_SESSION['uuid']) && $_SESSION['uuid']) {
             return $_SESSION['uuid'];
         }
