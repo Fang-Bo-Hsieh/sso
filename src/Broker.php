@@ -463,6 +463,8 @@ class Broker
      */
     public function getUuidFromSession()
     {
+        // 把 session 的生命週期調到你想要的時間
+        ini_set('session.gc_maxlifetime', 7200);
         session_start();
 
         if (isset($_SESSION['uuid']) && $_SESSION['uuid']) {
