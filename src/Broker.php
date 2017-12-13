@@ -133,7 +133,7 @@ class Broker
         setcookie($this->getCookieName(), $this->token, time() + $this->cookie_lifetime, '/');
     }
 
-    /**$this->token
+    /**
      * Clears session token
      */
     public function clearToken()
@@ -333,11 +333,10 @@ class Broker
 
             // 用uuid作為key值
             if (isset($this->userinfo['uuid']) && $this->userinfo['uuid']) {
-                $this->uuid = $this->userinfo['uuid'];
-
                 // 將結果暫存在session中，2小时後session過期
-                $_SESSION['uuid'] = $this->uuid;
-                $_SESSION[$this->uuid] = json_encode($this->userinfo);
+                $this->uuid = $this->userinfo['uuid'];
+                $this->saveUuidToSession($this->uuid);
+                $this->saveUserInfoToSession($this->userinfo);
             }
         }
 
@@ -483,5 +482,15 @@ class Broker
         unset($_SESSION[$this->uuid]);
         $this->uuid = null;
         $this->userinfo = null;
+    }
+
+    private function saveUuidToSession($uuid)
+    {
+        $_SESSION['uuid'] = $uuid;
+    }
+
+    private function saveUserInfoToSession($userinfo)
+    {
+        $_SESSION[$this->uuid] = json_encode($userinfo);
     }
 }
