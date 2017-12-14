@@ -370,9 +370,9 @@ class Broker
      *
      * @return string
      */
-    public function encode($string,$key) {
+    public function encode($string, $key) {
 //        $hash = '';
-        $hash = sha1($key.$string);
+//        $hash = sha1($key);
 //        $strLen = strlen($string);
 //        $keyLen = strlen($key);
 //        $j = 0;
@@ -384,7 +384,7 @@ class Broker
 //            $hash .= strrev(base_convert(dechex($ordStr + $ordKey),16,36));
 //        }
 
-        return $hash;
+        return str_replace(array('+', '/'), array('-', '_'), base64_encode($string));
     }
 
     /**
