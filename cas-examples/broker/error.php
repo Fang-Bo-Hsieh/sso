@@ -1,7 +1,11 @@
 <?php
-require_once __DIR__ . '/../../vendor/autoload.php';
+require_once __DIR__ . '/../../src/Broker.php';
+require_once __DIR__ . '/../../src/Exception.php';
+require_once __DIR__ . '/../../src/NotAttachedException.php';
 
-$broker = new Jasny\SSO\Broker(getenv('SSO_SERVER'), getenv('SSO_BROKER_ID'), getenv('SSO_BROKER_SECRET'));
+use Jasny\SSO\Broker;
+$config = include('config.php');
+$broker = new Broker($config['SSO_SERVER'], $config['SSO_BROKER_ID'], $config['SSO_BROKER_SECRET']);
 $error = $_GET['sso_error'];
 
 ?>

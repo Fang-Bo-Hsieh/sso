@@ -1,9 +1,11 @@
 <?php
+require_once __DIR__ . '/../../src/Broker.php';
+require_once __DIR__ . '/../../src/Exception.php';
+require_once __DIR__ . '/../../src/NotAttachedException.php';
+
 use Jasny\SSO\Broker;
 use Jasny\SSO\NotAttachedException;
 use Jasny\SSO\Exception as SsoException;
-
-require_once __DIR__ . '/../../vendor/autoload.php';
 
 if (isset($_GET['sso_error'])) {
     header("Location: error.php?sso_error=" . $_GET['sso_error'], true, 307);
@@ -11,7 +13,7 @@ if (isset($_GET['sso_error'])) {
 }
 
 $config = include('config.php');
-$broker = new Broker(getenv('SSO_SERVER'), getenv('SSO_BROKER_ID'), getenv('SSO_BROKER_SECRET'));
+$broker = new Broker($config['SSO_SERVER'], $config['SSO_BROKER_ID'], $config['SSO_BROKER_SECRET']);
 // 將client的資訊透過broker傳給sso server
 $broker->attach(true);
 

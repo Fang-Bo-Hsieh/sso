@@ -197,14 +197,17 @@ class Broker
             $returnUrl = $protocol . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
         }
 
-        // 若無法連上sso網站的登入畫面，則不訪問sso server
-        if (!$this->checkSsoSiteAlive($this->url.'/login')) {
-            return;
+        // 若不是本地環境且無法連上sso網站的登入畫面，則不attach sso server
+        if (strpos($this->url,'localhost') == false) {
+            if (!$this->checkSsoSiteAlive($this->url.'/login')) {
+                return;
+            }
         }
 
         $params = array('return_url' => $returnUrl);
         $url = $this->getAttachUrl($params);
 
+//        exit($url);
         header("Location: $url", true, 307);
         echo "You're redirected to <a href='$url'>$url</a>";
         exit();
@@ -246,6 +249,8 @@ class Broker
             curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 2); // 检查证书中是否设置域名，并且是否与提供的主机名匹配
         }
 
+        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT , 10);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 30); //timeout in seconds
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $method);
         curl_setopt($ch, CURLOPT_VERBOSE, true);
@@ -463,9 +468,12 @@ class Broker
      */
     public function getUuidFromSession()
     {
-        // 把 session 的生命週期調到你想要的時間
-        ini_set('session.gc_maxlifetime', 7200);
-        session_start();
+        if(!isset($_SESSION))
+        {
+            // 把 session 的生命週期調到你想要的時間
+            ini_set('session.gc_maxlifetime', 7200);
+            session_start();
+        }
 
         if (isset($_SESSION['uuid']) && $_SESSION['uuid']) {
             return $_SESSION['uuid'];

@@ -6,6 +6,7 @@ require_once 'MySSOServer.php';
 $redirectUrl = isset($_GET['redirect_url'])?$_GET['redirect_url']:$_POST['redirect_url'];
 $ssoServer = new MySSOServer();
 $username = $ssoServer->getSessionData('sso_user');
+$_GET['access_token'] = $_GET['token'];
 
 try {
     if ($ssoServer->getUserInfo($username) ||
@@ -25,10 +26,11 @@ try {
         $errmsg = $_GET['errmsg'];
     }
 } catch (NotAttachedException $e) {
-    header('Location: ' . $_SERVER['REQUEST_URI']);
-    exit;
+//    header('Location: ' . $_SERVER['REQUEST_URI']);
+    exit('SSO Server NotAttachedException');
 } catch (Jasny\SSO\Exception $e) {
     $errmsg = $e->getMessage();
+    exit($errmsg);
 }
 
 ?>

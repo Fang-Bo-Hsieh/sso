@@ -7,7 +7,7 @@
  */
 
 return array(
-    'SSO_SERVER' => 'http://localhost:9000',
-    'SSO_BROKER_ID' => 'Julias',
-    'SSO_BROKER_SECRET' => 'ceda63kmhp'
+    'SSO_SERVER' => 'http://localhost:6002',
+    'SSO_BROKER_ID' => 'Alice',
+    'SSO_BROKER_SECRET' => '8iwzik1bwd'
 );
