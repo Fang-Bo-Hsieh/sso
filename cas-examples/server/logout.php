@@ -7,6 +7,7 @@ $redirectUrl = isset($_GET['redirect_url'])?$_GET['redirect_url']:$_POST['redire
 $ssoServer = new MySSOServer();
 
 try {
+    session_start();
     $ssoServer->setSessionData('sso_user', null);
     // 登出成功，回導到傳來的redirect_url
     header("Location: ".$redirectUrl);

@@ -14,7 +14,7 @@ if (isset($_GET['sso_error'])) {
 }
 
 $config = include('config.php');
-$broker = new Broker($config['SSO_SERVER'], $config['SSO_BROKER_ID'], $config['SSO_BROKER_SECRET']);
+$broker = new Broker($config['SSO_SERVER'], $config['SSO_BROKER_ID'], $config['SSO_BROKER_SECRET'], 7200, 'login.php');
 $broker->attach(true);
 
 try {

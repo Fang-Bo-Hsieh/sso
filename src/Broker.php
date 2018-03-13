@@ -58,13 +58,22 @@ class Broker
     protected $cookie_lifetime;
 
     /**
+     * Login page path
+     * @var int
+     */
+    protected $loginPagePath;
+
+    /**
      * Class constructor
      *
      * @param string $url    Url of SSO server
      * @param string $broker My identifier, given by SSO provider.
      * @param string $secret My secret word, given by SSO provider.
+     * @param string $secret My secret word, given by SSO provider.
+     * @param int $cookie_lifetime cookie life time.
+     * @param string $loginPagePath cookie life time.
      */
-    public function __construct($url, $broker, $secret, $cookie_lifetime = 7200)
+    public function __construct($url, $broker, $secret, $cookie_lifetime = 7200, $loginPagePath = 'login')
     {
         if (!$url) throw new \InvalidArgumentException("SSO server URL not specified");
         if (!$broker) throw new \InvalidArgumentException("SSO broker id not specified");
@@ -74,6 +83,7 @@ class Broker
         $this->broker = $broker;
         $this->secret = $secret;
         $this->cookie_lifetime = $cookie_lifetime;
+        $this->loginPagePath = $loginPagePath;
 
         if (isset($_COOKIE[$this->getCookieName()])) $this->token = $_COOKIE[$this->getCookieName()];
     }
@@ -197,11 +207,8 @@ class Broker
             $returnUrl = $protocol . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
         }
 
-        // 若不是本地環境且無法連上sso網站的登入畫面，則不attach sso server
-        if (strpos($this->url,'localhost') == false) {
-            if (!$this->checkSsoSiteAlive($this->url.'/login')) {
-                return;
-            }
+        if (!$this->checkSsoSiteAlive($this->url.'/'.$this->loginPagePath)) {
+            return;
         }
 
         $params = array('return_url' => $returnUrl);

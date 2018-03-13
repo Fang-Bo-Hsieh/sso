@@ -77,7 +77,12 @@ abstract class Server
         $linkedId = $this->cache->get($sid);
 
         if (!$linkedId) {
-            return $this->fail("The broker session id isn't attached to a user session", 403);
+//            return $this->fail("The broker session id isn't attached to a user session", 403);
+
+            // 查看當前user session
+            $this->startUserSession();
+            $linkedId = $this->linkedId;
+            $this->cache->set($sid, $linkedId);
         }
 
         if (session_status() === PHP_SESSION_ACTIVE) {

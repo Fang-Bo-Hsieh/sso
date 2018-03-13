@@ -6,7 +6,7 @@ require_once 'MySSOServer.php';
 $redirectUrl = isset($_GET['redirect_url'])?$_GET['redirect_url']:$_POST['redirect_url'];
 $ssoServer = new MySSOServer();
 $username = $ssoServer->getSessionData('sso_user');
-$_GET['access_token'] = $_GET['token'];
+$_GET['access_token'] = isset($_GET['token'])?$_GET['token']:$_POST['access_token'];
 
 try {
     if ($ssoServer->getUserInfo($username) ||

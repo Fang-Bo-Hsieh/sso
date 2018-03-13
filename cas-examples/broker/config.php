@@ -7,7 +7,7 @@
  */
 
 return array(
-    'SSO_SERVER' => 'http://localhost:6002',
+    'SSO_SERVER' => 'http://50448bff.ngrok.io',
     'SSO_BROKER_ID' => 'Alice',
     'SSO_BROKER_SECRET' => '8iwzik1bwd'
 );
