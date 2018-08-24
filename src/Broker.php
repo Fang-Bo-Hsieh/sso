@@ -207,7 +207,8 @@ class Broker
             $returnUrl = $protocol . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
         }
 
-        if (!$this->checkSsoSiteAlive($this->url.'/'.$this->loginPagePath)) {
+        // 確認server狀態
+        if (!$this->checkSsoSiteAlive($this->url.'/nginx-health')) {
             return;
         }
 
