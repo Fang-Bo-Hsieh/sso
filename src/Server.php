@@ -123,6 +123,10 @@ abstract class Server
             $headers['Authorization'] = substr($headers['Authorization'], 7);
             return $headers['Authorization'];
         }
+        if (isset($headers['Sso-Authorization']) &&  strpos($headers['Sso-Authorization'], 'Bearer') === 0) {
+            $headers['Sso-Authorization'] = substr($headers['Sso-Authorization'], 7);
+            return $headers['Sso-Authorization'];
+        }
         if (isset($_GET['access_token'])) {
             return $_GET['access_token'];
         }

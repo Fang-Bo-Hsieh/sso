@@ -64,6 +64,12 @@ class Broker
     protected $loginPagePath;
 
     /**
+     * Session lifetime
+     * @var int
+     */
+    protected $session_lifetime;
+
+    /**
      * Class constructor
      *
      * @param string $url    Url of SSO server
@@ -71,9 +77,10 @@ class Broker
      * @param string $secret My secret word, given by SSO provider.
      * @param string $secret My secret word, given by SSO provider.
      * @param int $cookie_lifetime cookie life time.
-     * @param string $loginPagePath cookie life time.
+     * @param string $loginPagePath login uri.
+     * @param int $session_lifetime session life time.
      */
-    public function __construct($url, $broker, $secret, $cookie_lifetime = 7200, $loginPagePath = 'login')
+    public function __construct($url, $broker, $secret, $cookie_lifetime = 86400, $loginPagePath = 'login', $session_lifetime = 86400)
     {
         if (!$url) throw new \InvalidArgumentException("SSO server URL not specified");
         if (!$broker) throw new \InvalidArgumentException("SSO broker id not specified");
@@ -84,6 +91,7 @@ class Broker
         $this->secret = $secret;
         $this->cookie_lifetime = $cookie_lifetime;
         $this->loginPagePath = $loginPagePath;
+        $this->session_lifetime = $session_lifetime;
 
         if (isset($_COOKIE[$this->getCookieName()])) $this->token = $_COOKIE[$this->getCookieName()];
     }
@@ -96,7 +104,7 @@ class Broker
      * @param int $cookie_lifetime
      * @return Broker
      */
-    public static function &instance($url, $broker, $secret, $cookie_lifetime = 7200)
+    public static function &instance($url, $broker, $secret, $cookie_lifetime = 86400)
     {
         static $instance;
         if (!$instance) {
@@ -207,7 +215,7 @@ class Broker
             $returnUrl = $protocol . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
         }
 
-        // 確認server狀態
+        // 確認server狀態，若sso server掛掉，則不進行交互，確保平台網站正常運作
         if (!$this->checkSsoSiteAlive($this->url.'/nginx-health')) {
             return;
         }
@@ -235,11 +243,13 @@ class Broker
     }
 
     /**
-     * Execute on SSO server.
+     * 請求 SSO server API
      *
      * @param string       $method  HTTP method: 'GET', 'POST', 'DELETE'
      * @param string       $command Command
      * @param array|string $data    Query or post parameters
+     *
+     * @throws NotAttachedException | Exception
      * @return array|object
      */
     protected function request($method, $command, $data = null)
@@ -251,18 +261,19 @@ class Broker
 
         $ch = curl_init($url);
 
+        // 若url有帶https
         $SSL = substr($url, 0, 8) == "https://" ? true : false;
         if ($SSL) {
-            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);   // 只信任CA颁布的证书
-            curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 2); // 检查证书中是否设置域名，并且是否与提供的主机名匹配
+            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);   // 只信任CA頒布的證書
+            curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 2); // 检查證書中是否設置域名，並且是否與主機名匹配
         }
 
-        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT , 10);
+        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT , 15);
         curl_setopt($ch, CURLOPT_TIMEOUT, 30); //timeout in seconds
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $method);
-        curl_setopt($ch, CURLOPT_VERBOSE, true);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, array('Accept: application/json', 'Authorization: Bearer ' . $this->getSessionID()));
+        curl_setopt($ch, CURLOPT_VERBOSE, false);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, array('Accept: application/json', 'Sso-Authorization: Bearer ' . $this->getSessionId()));
 
         if ($method === 'POST' && !empty($data)) {
             $post = is_string($data) ? $data : http_build_query($data);
@@ -302,7 +313,7 @@ class Broker
 
 
     /**
-     * Log the client in at the SSO server.
+     * Login the client at the SSO server. (透過API進行登入時才使用)
      *
      * Only brokers marked trused can collect and send the user's credentials. Other brokers should omit $username and
      * $password.
@@ -324,7 +335,7 @@ class Broker
     }
 
     /**
-     * Logout at sso server.
+     * Logout at sso server. (透過API進行登出時才使用)
      */
     public function logout()
     {
@@ -334,19 +345,22 @@ class Broker
     /**
      * Get user information.
      *
+     * @param string $sso_user_id
+     *
      * @return object|null
      */
-    public function getUserInfo()
+    public function getUserInfo($sso_user_id = null)
     {
+        // 服務器暫存
         $this->userinfo = $this->getUserInfoFromSession();
 
         if (!isset($this->userinfo) || !$this->userinfo) {
             // 透過API從sso server獲取用戶資料
-            $this->userinfo = $this->request('GET', 'userInfo');
+            $this->userinfo = $this->request('GET', 'userInfo', is_null($sso_user_id)?null:array('sso_user_id' => $sso_user_id));
 
             // 用uuid作為key值
             if (isset($this->userinfo['uuid']) && $this->userinfo['uuid']) {
-                // 將結果暫存在session中，2小时後session過期
+                // 將結果暫存在session中，n小时後過期
                 $this->uuid = $this->userinfo['uuid'];
                 $this->saveUuidToSession($this->uuid);
                 $this->saveUserInfoToSession($this->userinfo);
@@ -479,7 +493,7 @@ class Broker
         if(!isset($_SESSION))
         {
             // 把 session 的生命週期調到你想要的時間
-            ini_set('session.gc_maxlifetime', 7200);
+            ini_set('session.gc_maxlifetime', $this->session_lifetime);
             session_start();
         }
 
